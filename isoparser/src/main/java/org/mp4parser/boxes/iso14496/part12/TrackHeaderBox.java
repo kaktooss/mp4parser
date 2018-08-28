@@ -174,7 +174,7 @@ public class TrackHeaderBox extends AbstractFullBox {
             modificationTime = DateHelper.convert(IsoTypeReader.readUInt32(content));
             trackId = IsoTypeReader.readUInt32(content);
             IsoTypeReader.readUInt32(content);
-            duration = content.getInt();
+            duration = IsoTypeReader.readUInt32(content);
         } // 196
 
         if (duration < -1) {
@@ -205,7 +205,7 @@ public class TrackHeaderBox extends AbstractFullBox {
             IsoTypeWriter.writeUInt32(byteBuffer, DateHelper.convert(modificationTime));
             IsoTypeWriter.writeUInt32(byteBuffer, trackId);
             IsoTypeWriter.writeUInt32(byteBuffer, 0);
-            byteBuffer.putInt((int) duration);
+            IsoTypeWriter.writeUInt32(byteBuffer, duration);
         } // 196
         IsoTypeWriter.writeUInt32(byteBuffer, 0);
         IsoTypeWriter.writeUInt32(byteBuffer, 0);
@@ -213,7 +213,6 @@ public class TrackHeaderBox extends AbstractFullBox {
         IsoTypeWriter.writeUInt16(byteBuffer, alternateGroup);
         IsoTypeWriter.writeFixedPoint88(byteBuffer, volume);
         IsoTypeWriter.writeUInt16(byteBuffer, 0);
-        int i = 0;
         matrix.getContent(byteBuffer);
 
         IsoTypeWriter.writeFixedPoint1616(byteBuffer, width);

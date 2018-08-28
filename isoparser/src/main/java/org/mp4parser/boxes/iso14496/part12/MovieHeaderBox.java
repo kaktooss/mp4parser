@@ -160,7 +160,7 @@ public class MovieHeaderBox extends AbstractFullBox {
             creationTime = DateHelper.convert(IsoTypeReader.readUInt32(content));
             modificationTime = DateHelper.convert(IsoTypeReader.readUInt32(content));
             timescale = IsoTypeReader.readUInt32(content);
-            duration = content.getInt();
+            duration = IsoTypeReader.readUInt32(content);
         }
         if (duration < -1) {
             LOG.warn("mvhd duration is not in expected range");
@@ -220,7 +220,7 @@ public class MovieHeaderBox extends AbstractFullBox {
             IsoTypeWriter.writeUInt32(byteBuffer, DateHelper.convert(creationTime));
             IsoTypeWriter.writeUInt32(byteBuffer, DateHelper.convert(modificationTime));
             IsoTypeWriter.writeUInt32(byteBuffer, timescale);
-            byteBuffer.putInt((int) duration);
+            IsoTypeWriter.writeUInt32(byteBuffer, duration);
         }
         IsoTypeWriter.writeFixedPoint1616(byteBuffer, rate);
         IsoTypeWriter.writeFixedPoint88(byteBuffer, volume);

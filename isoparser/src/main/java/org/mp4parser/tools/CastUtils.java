@@ -31,4 +31,21 @@ public class CastUtils {
         }
         return (int) l;
     }
+
+    /**
+     * Cast long to unsigned int
+     *
+     * @param l the long value
+     * @return the long value as int
+     */
+    public static long l2ui(long l) {
+        if (l > 4294967295L || l < 0) {
+            throw new RuntimeException("Unsigned int is out of range: " + l);
+        }
+        return l;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(1L << 32);
+    }
 }
