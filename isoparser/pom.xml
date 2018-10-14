@@ -7,7 +7,7 @@
     <description>A generic parser and writer for all ISO 14496 based files (MP4, Quicktime, DCF, PDCF, ...)
     </description>
     <url>https://github.com/sannies/mp4parser</url>
-    <version>1.9.35-SNAPSHOT</version>
+    <version>1.9.38-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -38,7 +38,7 @@
                     <dependency>
                         <groupId>org.aspectj</groupId>
                         <artifactId>aspectjtools</artifactId>
-                        <version>1.8.13</version>
+                        <version>1.9.1</version>
                     </dependency>
 
                 </dependencies>
@@ -114,7 +114,7 @@
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.8.13</version>
+            <version>1.9.1</version>
         </dependency>
         <dependency>
         <groupId>org.slf4j</groupId>
@@ -220,7 +220,7 @@
 
     <scm>
         <url>https://github.com/sannies/mp4parser</url>
-        <tag>mp4parser-project-1.9.5</tag>
+        <tag>mp4parser-project-1.9.35</tag>
   </scm>
 
     <licenses>
