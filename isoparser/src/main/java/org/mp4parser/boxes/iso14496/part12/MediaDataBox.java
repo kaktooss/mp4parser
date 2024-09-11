@@ -20,13 +20,12 @@ import org.mp4parser.BoxParser;
 import org.mp4parser.ParsableBox;
 import org.mp4parser.support.DoNotParseDetail;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -44,14 +43,10 @@ import java.nio.channels.WritableByteChannel;
  * so Media Data Box headers and free space may easily be skipped, and files without any box structure may
  * also be referenced and used.
  */
-public final class MediaDataBox implements ParsableBox {
+public final class MediaDataBox implements ParsableBox, Closeable {
     public static final String TYPE = "mdat";
-    private static Logger LOG = LoggerFactory.getLogger(MediaDataBox.class);
     ByteBuffer header;
     File dataFile;
-
-    public MediaDataBox() {
-    }
 
     public String getType() {
         return TYPE;
@@ -59,11 +54,11 @@ public final class MediaDataBox implements ParsableBox {
 
 
     public void getBox(WritableByteChannel writableByteChannel) throws IOException {
-        writableByteChannel.write((ByteBuffer) header.rewind());
-        FileChannel fc = new FileInputStream(dataFile).getChannel();
-
-        fc.transferTo(0, dataFile.lastModified(), writableByteChannel);
-        fc.close();
+        writableByteChannel.write((ByteBuffer) ((Buffer)header).rewind());
+        try (FileInputStream fis = new FileInputStream(dataFile);
+             FileChannel fc = fis.getChannel()) {
+            fc.transferTo(0, dataFile.lastModified(), writableByteChannel);
+        }
     }
 
     public long getSize() {
@@ -76,17 +71,23 @@ public final class MediaDataBox implements ParsableBox {
     @DoNotParseDetail
     public void parse(ReadableByteChannel dataSource, ByteBuffer header, long contentSize, BoxParser boxParser) throws IOException {
         dataFile = File.createTempFile("MediaDataBox", super.toString());
+        
+        // make sure to clean up temp file
+        dataFile.deleteOnExit();
 
         this.header = ByteBuffer.allocate(header.limit());
         this.header.put(header);
-        RandomAccessFile raf = new RandomAccessFile(dataFile, "rw");
-        try {
+        try (RandomAccessFile raf = new RandomAccessFile(dataFile, "rw")) {
             raf.getChannel().transferFrom(dataSource, 0, contentSize);
-        } finally {
-            raf.close();
         }
 
     }
 
 
+    @Override
+    public void close() throws IOException {
+        if (dataFile != null) {
+            dataFile.delete();
+        }
+    }
 }

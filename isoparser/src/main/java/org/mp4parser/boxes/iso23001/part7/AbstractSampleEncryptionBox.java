@@ -6,6 +6,7 @@ import org.mp4parser.tools.IsoTypeReader;
 import org.mp4parser.tools.IsoTypeWriter;
 
 import java.io.IOException;
+import java.nio.Buffer;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
@@ -46,18 +47,27 @@ public abstract class AbstractSampleEncryptionBox extends AbstractFullBox {
         long numOfEntries = IsoTypeReader.readUInt32(content);
         ByteBuffer parseEight = content.duplicate();
         ByteBuffer parseSixteen = content.duplicate();
+        ByteBuffer parseZero = content.duplicate();
 
         entries = parseEntries(parseEight, numOfEntries, 8);
-        if (entries == null) {
-            entries = parseEntries(parseSixteen, numOfEntries, 16);
-            content.position(content.position() + content.remaining() - parseSixteen.remaining());
-        } else {
-            content.position(content.position() + content.remaining() - parseEight.remaining());
-        }
-        if (entries == null) {
-            throw new RuntimeException("Cannot parse SampleEncryptionBox");
+        if (entries != null) {
+            ((Buffer)content).position(content.position() + content.remaining() - parseEight.remaining());
+            return;
         }
 
+        entries = parseEntries(parseSixteen, numOfEntries, 16);
+        if (entries != null) {
+            ((Buffer)content).position(content.position() + content.remaining() - parseSixteen.remaining());
+            return;
+        }
+
+        entries = parseEntries(parseZero, numOfEntries, 0);
+        if (entries != null) {
+            ((Buffer)content).position(content.position() + content.remaining() - parseZero.remaining());
+            return;
+        }
+
+        throw new RuntimeException("Cannot parse SampleEncryptionBox");
     }
 
     private List<CencSampleAuxiliaryDataFormat> parseEntries(ByteBuffer content, final long numOfEntries, int ivSize) {
@@ -83,7 +93,6 @@ public abstract class AbstractSampleEncryptionBox extends AbstractFullBox {
             return null;
         }
         return _entries;
-
     }
 
     public List<CencSampleAuxiliaryDataFormat> getEntries() {

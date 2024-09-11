@@ -23,6 +23,7 @@ import org.mp4parser.tools.RangeStartMap;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.*;
@@ -52,7 +53,7 @@ public class CencEncryptingTrackImpl implements CencEncryptedTrack {
      * Encrypts a given source track.
      *
      * @param source             unencrypted source file
-
+     * @param indexToKeyId      dunno
      * @param keys               key ID to key map
      * @param encryptionAlgo     cenc or cbc1 (don't use cbc1)
      * @param dummyIvs           disables RNG for IVs and use IVs starting with 0x00...000
@@ -127,7 +128,7 @@ public class CencEncryptingTrackImpl implements CencEncryptedTrack {
 
                 e.iv = eightByteIv;
 
-                ByteBuffer sample = (ByteBuffer) origSample.asByteBuffer().rewind();
+                ByteBuffer sample = (ByteBuffer) ((Buffer)origSample.asByteBuffer()).rewind();
 
                 if (nalLengthSize > 0) {
                     if (encryptButAllClear) {
@@ -144,7 +145,7 @@ public class CencEncryptingTrackImpl implements CencEncryptedTrack {
                                 clearBytes = 96 + nalGrossSize % 16;
                             }
                             pairs.add(e.createPair(clearBytes, nalGrossSize - clearBytes));
-                            sample.position(sample.position() + nalLength);
+                            ((Buffer)sample).position(sample.position() + nalLength);
                         }
                         e.pairs = pairs.toArray(new CencSampleAuxiliaryDataFormat.Pair[pairs.size()]);
                     }

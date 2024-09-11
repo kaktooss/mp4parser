@@ -24,6 +24,7 @@ import org.mp4parser.tools.IsoTypeReader;
 import org.mp4parser.tools.IsoTypeWriter;
 
 import java.io.IOException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -71,8 +72,12 @@ public class DataReferenceBox extends AbstractContainerBox implements FullBox {
     @Override
     public void parse(ReadableByteChannel dataSource, ByteBuffer header, long contentSize, BoxParser boxParser) throws IOException {
         ByteBuffer versionFlagNumOfChildBoxes = ByteBuffer.allocate(8);
-        dataSource.read(versionFlagNumOfChildBoxes);
-        versionFlagNumOfChildBoxes.rewind();
+        int required = versionFlagNumOfChildBoxes.limit();
+        while (required > 0){
+            int read = dataSource.read(versionFlagNumOfChildBoxes);
+            required -= read;
+        }
+        ((Buffer)versionFlagNumOfChildBoxes).rewind();
         version = IsoTypeReader.readUInt8(versionFlagNumOfChildBoxes);
         flags = IsoTypeReader.readUInt24(versionFlagNumOfChildBoxes);
         // number of child boxes is not required - ignore
@@ -87,7 +92,7 @@ public class DataReferenceBox extends AbstractContainerBox implements FullBox {
         IsoTypeWriter.writeUInt8(versionFlagNumOfChildBoxes, version);
         IsoTypeWriter.writeUInt24(versionFlagNumOfChildBoxes, flags);
         IsoTypeWriter.writeUInt32(versionFlagNumOfChildBoxes, getBoxes().size());
-        writableByteChannel.write((ByteBuffer) versionFlagNumOfChildBoxes.rewind());
+        writableByteChannel.write((ByteBuffer) ((Buffer)versionFlagNumOfChildBoxes).rewind());
         writeContainer(writableByteChannel);
     }
 

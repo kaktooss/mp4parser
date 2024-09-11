@@ -12,6 +12,7 @@ import org.mp4parser.tools.Path;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.Array;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.*;
@@ -19,18 +20,18 @@ import java.util.*;
 import static org.mp4parser.tools.CastUtils.l2i;
 
 public class FragmentedMp4SampleList extends AbstractList<Sample> {
-    private Container isofile;
+    private final Container isofile;
     private TrackBox trackBox = null;
     private TrackExtendsBox trex = null;
-    private HashMap<TrackFragmentBox, MovieFragmentBox> traf2moof = new HashMap<>();
-    private SoftReference<Sample> sampleCache[];
+    private final HashMap<TrackFragmentBox, MovieFragmentBox> traf2moof = new HashMap<>();
+    private final SoftReference<Sample>[] sampleCache;
     private List<TrackFragmentBox> allTrafs;
-    private Map<TrackRunBox, SoftReference<ByteBuffer>>
+    private final Map<TrackRunBox, SoftReference<ByteBuffer>>
             trunDataCache = new HashMap<>();
-    private int firstSamples[];
+    private int[] firstSamples;
     private int size_ = -1;
-    private RandomAccessSource randomAccess;
-    private List<SampleEntry> sampleEntries;
+    private final RandomAccessSource randomAccess;
+    private final List<SampleEntry> sampleEntries;
 
     public FragmentedMp4SampleList(long track, Container isofile, RandomAccessSource randomAccess) {
         this.isofile = isofile;
@@ -189,9 +190,7 @@ public class FragmentedMp4SampleList extends AbstractList<Sample> {
                     Sample sample = new Sample() {
                         public void writeTo(WritableByteChannel channel) throws IOException {
                             ByteBuffer bb = asByteBuffer();
-                            System.err.println(bb.position() + "/" + bb.limit());
                             int a = channel.write(bb);
-                            System.err.println(a + " with " + bb.position() + "/" + bb.limit());
                         }
 
                         public long getSize() {
@@ -199,7 +198,7 @@ public class FragmentedMp4SampleList extends AbstractList<Sample> {
                         }
 
                         public ByteBuffer asByteBuffer() {
-                            return (ByteBuffer) ((ByteBuffer) finalTrunData.position(finalOffset)).slice().limit(l2i(sampleSize));
+                            return (ByteBuffer) ((Buffer)((ByteBuffer) ((Buffer)finalTrunData).position(finalOffset)).slice()).limit(l2i(sampleSize));
                         }
 
                         @Override
